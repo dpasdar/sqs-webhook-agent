@@ -1,0 +1,30 @@
+[Unit]
+Description=SQS Webhook Agent Service
+ConditionPathExists=/opt/sqs-webhook-agent/sqs-webhook-agent
+After=network.target
+
+[Service]
+Type=simple
+User=sqs-webhook-agent
+Group=sqs-webhook-agent
+LimitNOFILE=1024
+
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=60
+
+WorkingDirectory=/opt/sqs-webhook-agent
+ExecStart=/opt/sqs-webhook-agent/sqs-webhook-agent -queue_name=foo
+EnvironmentFile=/opt/sqs-webhook-agent/.env
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/sqs-webhook-agent
+ExecStartPre=/bin/chown syslog:adm /var/log/sqs-webhook-agent
+ExecStartPre=/bin/chmod 755 /var/log/sqs-webhook-agent
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sqs-webhook-agent
+
+[Install]
+WantedBy=multi-user.target
